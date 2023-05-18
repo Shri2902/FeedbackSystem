@@ -1,32 +1,36 @@
+
 <?php
-$errors = array();
-// ADMIN USER
-$conn = mysqli_connect('localhost', 'root', '', 'project');
-// Check if the form is submitted
+// Connect to the database
+$db = mysqli_connect('localhost', 'root', '', 'project');
+
+// Process the form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // Retrieve the question from the form
   $question = $_POST['question'];
+  $options = $_POST['options'];
+  $correctOption = $_POST['correct_option'];
 
-  // Validate the question (you can add more validation if needed)
-  if (!empty($question)) {
-    // Store the question in the database or any other desired processing
-    $question = mysqli_real_escape_string($conn, $_POST['question']);
+  // Insert the question into the database
+  $query = "INSERT INTO questions (question) VALUES (?)";
+  $stmt = mysqli_prepare($db, $query);
+  mysqli_stmt_bind_param($stmt, "s", $question);
+  mysqli_stmt_execute($stmt);
 
-    // Here, we are just displaying the question for demonstration purposes
-    echo "Question added successfully: " . $question;
-  } else {
-    echo "Please provide a question.";
+  // Get the ID of the inserted question
+  $questionId = mysqli_insert_id($db);
 
+  // Insert the options into the database
+  $optionQuery = "INSERT INTO options (question_id, option_text, is_correct) VALUES (?, ?, ?)";
+  $optionStmt = mysqli_prepare($db, $optionQuery);
+
+  foreach ($options as $index => $option) {
+    $isCorrect = ($index + 1) == $correctOption ? 1 : 0; // Set the correct option
+
+    mysqli_stmt_bind_param($optionStmt, "isi", $questionId, $option, $isCorrect);
+    mysqli_stmt_execute($optionStmt);
   }
-  if (count($errors) == 0) {
 
-
-    $query = "INSERT INTO feedback_questions (question) 
-                  VALUES('$question')";
-    mysqli_query($conn, $query);
-    $_SESSION['question'] = $question;
-    $_SESSION['success'] = "Question is added";
-    header('location: admin.php');
-  }
+  // Redirect to a success page or display a success message
+  header('location: question_added.php');
+  exit();
 }
 ?>

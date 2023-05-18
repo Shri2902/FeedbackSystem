@@ -147,31 +147,37 @@ if (isset($_POST['login_user'])) {
       } else {
         array_push($errors, "Wrong username/password combination");
       }
+    } else {
+      array_push($errors, "Invalid role");
     }
 
-    $stmt = mysqli_prepare($db, $query);
-    mysqli_stmt_bind_param($stmt, "s", $username);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    if (mysqli_num_rows($result) == 1) {
-      $user = mysqli_fetch_assoc($result);
-      if ($role === 'Student' && password_verify($password, $user['password'])) {
-        $_SESSION['username'] = $username;
-        $_SESSION['success'] = "You are now logged in as a student";
-        header('location: login_success.php');
-        exit();
-      } elseif ($role === 'Faculty' && $password === $user['password']) {
-        $_SESSION['username'] = $username;
-        $_SESSION['success'] = "You are now logged in as a faculty";
-        header('location: login_success.php');
-        exit();
+    // Only execute the query for student and faculty login
+    if ($role === 'Student' || $role === 'Faculty') {
+      $stmt = mysqli_prepare($db, $query);
+      mysqli_stmt_bind_param($stmt, "s", $username);
+      mysqli_stmt_execute($stmt);
+      $result = mysqli_stmt_get_result($stmt);
+      if (mysqli_num_rows($result) == 1) {
+        $user = mysqli_fetch_assoc($result);
+        if ($role === 'Student' && password_verify($password, $user['password'])) {
+          $_SESSION['username'] = $username;
+          $_SESSION['success'] = "You are now logged in as a student";
+          header('location: login_success.php');
+          exit();
+        } elseif ($role === 'Faculty' && $password === $user['password']) {
+          $_SESSION['username'] = $username;
+          $_SESSION['success'] = "You are now logged in as a faculty";
+          header('location: login_success.php');
+          exit();
+        } else {
+          array_push($errors, "Wrong username/password combination");
+        }
       } else {
         array_push($errors, "Wrong username/password combination");
       }
-    } else {
-      array_push($errors, "Wrong username/password combination");
     }
   }
 }
+
 
 ?>
