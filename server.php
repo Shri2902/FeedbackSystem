@@ -92,12 +92,12 @@ if (isset($_POST['reg_user'])) {
     if (empty($email)) {
       array_push($errors, "Email is required");
     }
-    if (empty($password)) {
+    if (empty($password_1)) {
       array_push($errors, "Password is required");
     }
     if (count($errors) == 0) {
       // Hash the password
-      $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+      $hashed_password = password_hash($password_1, PASSWORD_DEFAULT);
 
       // Insert user data into the database
       $query = "INSERT INTO faculty (username, email, password) VALUES (?, ?, ?)";
@@ -115,6 +115,7 @@ if (isset($_POST['reg_user'])) {
 
 // LOGIN USER
 if (isset($_POST['login_user'])) {
+  $role = $_POST['role'];
   $username = mysqli_real_escape_string($db, $_POST['username']);
   $password = mysqli_real_escape_string($db, $_POST['password']);
 
@@ -126,17 +127,42 @@ if (isset($_POST['login_user'])) {
   }
 
   if (count($errors) == 0) {
-    $query = "SELECT * FROM users WHERE username=?";
+    if ($role === 'Student') {
+      $query = "SELECT * FROM users WHERE username=?";
+    } elseif ($role === 'Faculty') {
+      $query = "SELECT * FROM faculty WHERE username=?";
+    } elseif ($role === 'Admin') {
+      // Define your predefined admin usernames and passwords
+      $adminCredentials = array(
+        'Nishal' => 'abcdefgh',
+        'Shriprada' => 'abcdefgh',
+        'Amod' => 'abcdefgh'
+      );
+
+      if (isset($adminCredentials[$username]) && $adminCredentials[$username] === $password) {
+        $_SESSION['username'] = $username;
+        $_SESSION['success'] = "You are now logged in as an admin";
+        header('location: admin_dashboard.php');
+        exit();
+      } else {
+        array_push($errors, "Wrong username/password combination");
+      }
+    }
+
     $stmt = mysqli_prepare($db, $query);
     mysqli_stmt_bind_param($stmt, "s", $username);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
-
     if (mysqli_num_rows($result) == 1) {
       $user = mysqli_fetch_assoc($result);
-      if (password_verify($password, $user['password'])) {
+      if ($role === 'Student' && password_verify($password, $user['password'])) {
         $_SESSION['username'] = $username;
-        $_SESSION['success'] = "You are now logged in";
+        $_SESSION['success'] = "You are now logged in as a student";
+        header('location: login_success.php');
+        exit();
+      } elseif ($role === 'Faculty' && $password === $user['password']) {
+        $_SESSION['username'] = $username;
+        $_SESSION['success'] = "You are now logged in as a faculty";
         header('location: login_success.php');
         exit();
       } else {

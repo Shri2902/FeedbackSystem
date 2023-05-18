@@ -19,6 +19,14 @@
 			<input type="text" name="username">
 		</div>
 		<div class="input-group">
+			<label>Role:</label>
+			<select name="role">
+				<option value="Student">Student</option>
+				<option value="Faculty">Faculty</option>
+				<option value="Admin">Admin</option>
+			</select>
+		</div>
+		<div class="input-group">
 			<label>Password</label>
 			<input type="password" name="password">
 		</div>
