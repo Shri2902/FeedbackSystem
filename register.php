@@ -13,17 +13,17 @@ include('server.php') ?>
 		<h2>Register</h2>
 	</div>
 
-	<form method="post" action="register.php">
+	<form method="post" action="server.php">
 		<?php include('errors.php'); ?>
 		<div class="input-group">
 			<label>Username</label>
 			<input type="text" name="username" value="<?php echo $username; ?>">
 		</div>
 
-		<select name="selectedOption">
-			<option value="student">Student</option>
-			<option value="admin">Admin</option>
-			<option value="faculty">Faculty</option>
+		<label for="role">Role:</label>
+		<select name="role" id="role">
+			<option>Student</option>
+			<option>Faculty</option>
 		</select>
 
 		<div class="input-group">
